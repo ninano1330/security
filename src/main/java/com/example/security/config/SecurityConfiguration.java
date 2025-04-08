@@ -3,20 +3,14 @@ package com.example.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 
 @Configuration
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true) // 서비스 레이어 보안 기능 - secrued, prePostEnabled 어노테이션 활성화
 public class SecurityConfiguration {
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
