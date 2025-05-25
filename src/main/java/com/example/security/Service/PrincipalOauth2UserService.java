@@ -1,7 +1,9 @@
 package com.example.security.Service;
 
 import com.example.security.config.auth.PrincipalDetails;
+import com.example.security.config.oauth.FacebookUserInfo;
 import com.example.security.config.oauth.GoogleUserInfo;
+import com.example.security.config.oauth.NaverUserInfo;
 import com.example.security.config.oauth.OAuth2UserInfo;
 import com.example.security.entity.User;
 import com.example.security.repository.UserRepository;
@@ -13,6 +15,8 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
@@ -36,6 +40,10 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
         if("google".equals(provider)) {
             oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+        }else if("facebook".equals(provider)) {
+            oAuth2UserInfo = new FacebookUserInfo(oAuth2User.getAttributes());
+        }else if("naver".equals(provider)){
+            oAuth2UserInfo = new NaverUserInfo((Map)oAuth2User.getAttributes().get("response"));
         }
 
         String providerId = oAuth2UserInfo.getProviderId();
