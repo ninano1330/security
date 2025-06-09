@@ -1,4 +1,4 @@
-package com.example.security.Service;
+package com.example.security.service;
 
 import com.example.security.config.auth.PrincipalDetails;
 import com.example.security.config.oauth.FacebookUserInfo;
