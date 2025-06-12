@@ -63,17 +63,17 @@ public class ApiController {
         return "manager";
     }
 
-    @PostMapping("/join")
-    public String join(User user) {
-        user.setRole("ROLE_USER");
-
-        String rawPassword = user.getPassword();
-        String encPassword = bCryptPasswordEncoder.encode(rawPassword);
-        user.setPassword(encPassword);
-
-        userRepository.save(user);
-        return "redirect:/loginForm";
-    }
+//    @PostMapping("/join")
+//    public String join(User user) {
+//        user.setRole("ROLE_USER");
+//
+//        String rawPassword = user.getPassword();
+//        String encPassword = bCryptPasswordEncoder.encode(rawPassword);
+//        user.setPassword(encPassword);
+//
+//        userRepository.save(user);
+//        return "redirect:/loginForm";
+//    }
 
     @GetMapping("/info")
     @ResponseBody

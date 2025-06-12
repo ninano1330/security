@@ -1,17 +1,21 @@
 package com.example.security.config;
 
 
-import com.example.security.filter.MyFilter1;
+import com.example.security.filter.JwtAuthenticationFilter;
+import com.example.security.filter.JwtAuthorizationFilter;
+import com.example.security.repository.UserRepository;
 import com.example.security.service.PrincipalOauth2UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
 
 @Configuration
@@ -24,23 +28,35 @@ public class SecurityConfiguration {
     @Autowired
     private CorsConfig corsConfig;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, AuthenticationManager authenticationManager) throws Exception {
+//        AuthenticationManager authenticationManager = httpSecurity.getSharedObject(AuthenticationManager.class);
+
         httpSecurity
-                .addFilterBefore(new MyFilter1(), BasicAuthenticationFilter.class)
-                .csrf((crsf) -> crsf.disable())
+                .addFilter(new JwtAuthenticationFilter(authenticationManager))
+                .addFilter(new JwtAuthorizationFilter(authenticationManager, userRepository))
+//                .addFilterBefore(new MyFilter1(), SecurityContextPersistenceFilter.class)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // JWT를 사용할 때는 STATELESS로 설정
                 )
                 .addFilter(corsConfig.corsFilter()) // CORS 설정 필터 추가
                 .formLogin(formLogin -> formLogin.disable())
-                .httpBasic(httpBasic -> httpBasic.disable()) //
+                .httpBasic(httpBasic -> httpBasic.disable())
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/api/v1/user/**").hasAnyRole("USER", "ADMIN", "MANAGER")
                         .requestMatchers("/api/v1/manager/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN")
                         .anyRequest().permitAll()
                 )
+                .csrf((crsf) -> crsf.disable())
 //                .authorizeHttpRequests(requests -> requests
 //                        .requestMatchers("/user/**").authenticated()
 //                        .requestMatchers("/manager/**").hasAnyRole("ADMIN", "MANAGER")
