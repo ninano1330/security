@@ -38,41 +38,35 @@ public class SecurityConfiguration {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, AuthenticationManager authenticationManager) throws Exception {
-//        AuthenticationManager authenticationManager = httpSecurity.getSharedObject(AuthenticationManager.class);
-
         httpSecurity
                 .addFilter(new JwtAuthenticationFilter(authenticationManager))
                 .addFilter(new JwtAuthorizationFilter(authenticationManager, userRepository))
-//                .addFilterBefore(new MyFilter1(), SecurityContextPersistenceFilter.class)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // JWT를 사용할 때는 STATELESS로 설정
-                )
+//                .sessionManagement(session -> session
+//                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // JWT를 사용할 때는 STATELESS로 설정
+//                )
                 .addFilter(corsConfig.corsFilter()) // CORS 설정 필터 추가
                 .formLogin(formLogin -> formLogin.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
+                .csrf((crsf) -> crsf.disable())
                 .authorizeHttpRequests(requests -> requests
+                        .requestMatchers("/user/**").authenticated()
+                        .requestMatchers("/manager/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/user/**").hasAnyRole("USER", "ADMIN", "MANAGER")
                         .requestMatchers("/api/v1/manager/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN")
                         .anyRequest().permitAll()
                 )
-                .csrf((crsf) -> crsf.disable())
-//                .authorizeHttpRequests(requests -> requests
-//                        .requestMatchers("/user/**").authenticated()
-//                        .requestMatchers("/manager/**").hasAnyRole("ADMIN", "MANAGER")
-//                        .requestMatchers("/admin/**").hasRole("ADMIN")
-//                        .anyRequest().permitAll()
-//                )
-//                .formLogin((formLogin ->
-//                        formLogin.loginPage("/loginForm")
-//                                .loginProcessingUrl("/login")
-//                                .defaultSuccessUrl("/"))
-//                )
-//                .oauth2Login(oath2Login ->
-//                        oath2Login.loginPage("/loginForm")
-//                                .userInfoEndpoint(userInfoEndPoint -> userInfoEndPoint.userService(principalOauth2UserService))
-//                                .defaultSuccessUrl("/")
-//                )
+                .formLogin((formLogin ->
+                        formLogin.loginPage("/loginForm")
+                                .loginProcessingUrl("/login")
+                                .defaultSuccessUrl("/"))
+                )
+                .oauth2Login(oath2Login ->
+                        oath2Login.loginPage("/loginForm")
+                                .userInfoEndpoint(userInfoEndPoint -> userInfoEndPoint.userService(principalOauth2UserService))
+                                .defaultSuccessUrl("/")
+                )
         ;
 
         return httpSecurity.build();

@@ -11,29 +11,29 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
 import java.util.Date;
 
-// /login (POST) 요청해서 username, password 전송하면
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
 
-    // successfulAuthentication 후 successfulAuthentication 실행
-    // JWT 토큰을 만들어서 response에 담아주면 됨
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        System.out.println("successfulAuthentication : 인증 완료");
+        log.info("successfulAuthentication :: 인증 완료");
 
         PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
 
-        // R SA방식 X Hash암호 방식
+        // RSA방식 X Hash암호 방식
         String jwtToken = JWT.create()
                 .withSubject("cos토큰")
                 .withExpiresAt(new Date(System.currentTimeMillis() + (JwtProperties.EXPIRATION_TIME)))
@@ -48,32 +48,22 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        System.out.println("JwtAuthenticationFilter: 로그인 시도 중");
+        log.info("attemptAuthentication :: 로그인 시도");
 
-        // 1. username, password 받아서
         try {
             ObjectMapper om = new ObjectMapper();
             User user = om.readValue(request.getInputStream(), User.class);
-            System.out.println("user = " + user);
 
             UsernamePasswordAuthenticationToken authenticationToken
                     = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
 
-            // PrincipalDetailsService.loadUserByUsername() 메소드가 실행됨
+            // PrincipalDetailsService.loadUserByUsername() 실행
             Authentication authentication = authenticationManager.authenticate(authenticationToken);
-            PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
-            System.out.println("principalDetails.getUser() = " + principalDetails.getUser());
+//            PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
+
             return authentication;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        // 2. 정상인지 로그인 시도 authenticationManager로 로그인 시도를 하면 principalDetailsService.loadUserByUsername() 함수가 실행됨
-
-        // 3. PrincipalDetails를 세션에 담고
-
-        // 4. JWT 토큰을 만들어서 응답해주면 됨
-
-
     }
 }

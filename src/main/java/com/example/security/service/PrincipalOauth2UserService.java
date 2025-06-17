@@ -7,6 +7,7 @@ import com.example.security.config.oauth.NaverUserInfo;
 import com.example.security.config.oauth.OAuth2UserInfo;
 import com.example.security.entity.User;
 import com.example.security.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -28,10 +30,8 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        log.info("loadUser :: OAuth2 로그인 요청");
         // registrationId로 어떤 OAuth로 로그인했는지 확인
-        System.out.println("userRequest.getClientRegistration() = " + userRequest.getClientRegistration());
-        System.out.println("userRequest.getAccessToken() = " + userRequest.getAccessToken());
-
         OAuth2User oAuth2User = super.loadUser(userRequest);
         String provider = userRequest.getClientRegistration().getRegistrationId(); // google
         OAuth2AccessToken accessToken = userRequest.getAccessToken();
