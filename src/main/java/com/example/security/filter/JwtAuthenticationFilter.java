@@ -5,9 +5,11 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.example.security.config.auth.PrincipalDetails;
 import com.example.security.config.jwt.JwtProperties;
 import com.example.security.entity.User;
+import com.example.security.util.TokenUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.Date;
 
 @RequiredArgsConstructor
@@ -32,16 +35,27 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         log.info("successfulAuthentication :: 인증 완료");
 
         PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
+        TokenUtil tokenUtil = new TokenUtil();
 
         // RSA방식 X Hash암호 방식
-        String jwtToken = JWT.create()
-                .withSubject("cos토큰")
-                .withExpiresAt(new Date(System.currentTimeMillis() + (JwtProperties.EXPIRATION_TIME)))
-                .withClaim("id", principalDetails.getUser().getId())
-                .withClaim("username", principalDetails.getUser().getUsername())
-                .sign(Algorithm.HMAC512(JwtProperties.SECRET));// secret 값
+//        String jwtToken = JWT.create()
+//                .withSubject("cos토큰")
+//                .withExpiresAt(new Date(System.currentTimeMillis() + (JwtProperties.EXPIRATION_TIME)))
+//                .withClaim("id", principalDetails.getUser().getId())
+//                .withClaim("username", principalDetails.getUser().getUsername())
+//                .sign(Algorithm.HMAC512(JwtProperties.SECRET));// secret 값
 
-        response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
+        String jwtToken = tokenUtil.createJwtToken(principalDetails.getUser().getId(), principalDetails.getUser().getUsername());
+
+//        response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
+
+
+//        String cookieValue = JwtProperties.TOKEN_NAME + "=" + jwtToken + ";"
+//            + " Path=/; HttpOnly; Max-Age=" + JwtProperties.EXPIRATION_TIME / 1000;
+
+        String cookieValue = tokenUtil.createCookieValue(jwtToken);
+
+        response.addHeader("Set-Cookie", cookieValue);
 
 //        super.successfulAuthentication(request, response, chain, authResult);
     }

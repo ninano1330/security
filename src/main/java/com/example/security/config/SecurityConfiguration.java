@@ -4,6 +4,7 @@ package com.example.security.config;
 import com.example.security.filter.JwtAuthenticationFilter;
 import com.example.security.filter.JwtAuthorizationFilter;
 import com.example.security.repository.UserRepository;
+import com.example.security.service.OAuth2SuccessHandler;
 import com.example.security.service.PrincipalOauth2UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
 
@@ -30,6 +32,9 @@ public class SecurityConfiguration {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private OAuth2SuccessHandler oauth2SuccessHandler;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -62,10 +67,11 @@ public class SecurityConfiguration {
                                 .loginProcessingUrl("/login")
                                 .defaultSuccessUrl("/"))
                 )
-                .oauth2Login(oath2Login ->
-                        oath2Login.loginPage("/loginForm")
+                .oauth2Login(oauth2Login ->
+                        oauth2Login.loginPage("/loginForm")
                                 .userInfoEndpoint(userInfoEndPoint -> userInfoEndPoint.userService(principalOauth2UserService))
-                                .defaultSuccessUrl("/")
+                                .successHandler(oauth2SuccessHandler)
+//                                .defaultSuccessUrl("/")
                 )
         ;
 

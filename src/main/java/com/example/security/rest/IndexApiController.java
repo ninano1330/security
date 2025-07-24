@@ -5,12 +5,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class IndexApiController {
-    @GetMapping("home")
+    @GetMapping("/home")
     public String home() {
         return "Welcome to the home page!";
     }
 
-    @GetMapping("token")
+    @GetMapping("/token")
     public String token() {
         return "Welcome to the home page!";
     }
