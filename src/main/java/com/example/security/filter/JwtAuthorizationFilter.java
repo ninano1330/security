@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.example.security.config.auth.PrincipalDetails;
 import com.example.security.config.jwt.JwtProperties;
+import com.example.security.dto.UserDto;
 import com.example.security.entity.User;
 import com.example.security.repository.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -12,13 +13,11 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
@@ -40,17 +39,12 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter  {
 //        super.doFilterInternal(request, response, chain);
         log.info("doFilterInternal :: 권한이나 인증이 필요함");
 
+        Authentication authentication1 = SecurityContextHolder.getContext().getAuthentication();
+
         Cookie[] cookies = request.getCookies();
         String jwtToken = null;
 
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("accessToken".equals(cookie.getName())) {
-                    jwtToken = cookie.getValue();
-                }
-            }
-        }
-
+        /** JWT 토큰을 헤더에서 추출 */
 //        String jwtHeader = request.getHeader(JwtProperties.HEADER_STRING);
 //
 //        if(jwtHeader == null || !jwtHeader.startsWith(JwtProperties.TOKEN_PREFIX)) {
@@ -59,6 +53,15 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter  {
 //        }
 
 //        String jwtToken = jwtHeader.replace(JwtProperties.TOKEN_PREFIX, "");
+
+        /** JWT 토큰을 쿠키에서 추출 */
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName())) {
+                    jwtToken = cookie.getValue();
+                }
+            }
+        }
 
         if(jwtToken == null) {
             chain.doFilter(request, response);
@@ -69,8 +72,18 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter  {
         String username
                 = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(jwtToken).getClaim("username").asString();
 
+        int id
+                = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(jwtToken).getClaim("id").asInt();
+
+        String role
+                = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(jwtToken).getClaim("role").asString();
+
         if(username != null) {
-            User user = userRepository.findByUsername(username);
+//            User user = userRepository.findByUsername(username);
+            UserDto user = new UserDto();
+            user.setId(id);
+            user.setUsername(username);
+            user.setRole(role);
 
             PrincipalDetails principalDetails = new PrincipalDetails(user);
             Authentication authentication

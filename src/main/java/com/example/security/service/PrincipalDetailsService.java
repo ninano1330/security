@@ -1,6 +1,7 @@
 package com.example.security.service;
 
 import com.example.security.config.auth.PrincipalDetails;
+import com.example.security.dto.UserDto;
 import com.example.security.entity.User;
 import com.example.security.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +24,9 @@ public class PrincipalDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.info("loadUserByUsername :: 로그인");
         User user = userRepository.findByUsername(username);
+        UserDto userDto = user.toDto();
 
-        if(user != null) return new PrincipalDetails(user);
+        if(user != null) return new PrincipalDetails(userDto);
         return null;
     }
 }

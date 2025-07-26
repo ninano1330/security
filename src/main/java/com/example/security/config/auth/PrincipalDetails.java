@@ -8,6 +8,7 @@ package com.example.security.config.auth;
 
 // Security Session => Authentication => UserDetails(PrincipalDetails)
 
+import com.example.security.dto.UserDto;
 import com.example.security.entity.User;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,16 +21,17 @@ import java.util.Map;
 
 @Data
 public class PrincipalDetails implements UserDetails, OAuth2User {
-    private User user; //콤포지션
+//    private User user; //콤포지션
+    private UserDto user;
     private Map<String, Object> attributes;
 
     // 일반 로그인
-    public PrincipalDetails(User user) {
+    public PrincipalDetails(UserDto user) {
         this.user = user;
     }
 
     // OAuth 로그인
-    public PrincipalDetails(User user, Map<String, Object> attributes) {
+    public PrincipalDetails(UserDto user, Map<String, Object> attributes) {
         this.user = user;
         this.attributes = attributes;
     }

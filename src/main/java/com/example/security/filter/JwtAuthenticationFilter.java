@@ -1,15 +1,12 @@
 package com.example.security.filter;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.example.security.config.auth.PrincipalDetails;
-import com.example.security.config.jwt.JwtProperties;
+import com.example.security.dto.UserDto;
 import com.example.security.entity.User;
-import com.example.security.util.TokenUtil;
+import com.example.security.util.JWTTokenUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +15,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.Date;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -31,33 +25,22 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     private final AuthenticationManager authenticationManager;
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
         log.info("successfulAuthentication :: 인증 완료");
 
-        PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
-        TokenUtil tokenUtil = new TokenUtil();
+        PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
+        JWTTokenUtil jWTTokenUtil = new JWTTokenUtil();
 
-        // RSA방식 X Hash암호 방식
-//        String jwtToken = JWT.create()
-//                .withSubject("cos토큰")
-//                .withExpiresAt(new Date(System.currentTimeMillis() + (JwtProperties.EXPIRATION_TIME)))
-//                .withClaim("id", principalDetails.getUser().getId())
-//                .withClaim("username", principalDetails.getUser().getUsername())
-//                .sign(Algorithm.HMAC512(JwtProperties.SECRET));// secret 값
+        /** response header Authorization */
+        //        response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
 
-        String jwtToken = tokenUtil.createJwtToken(principalDetails.getUser().getId(), principalDetails.getUser().getUsername());
-
-//        response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
-
-
-//        String cookieValue = JwtProperties.TOKEN_NAME + "=" + jwtToken + ";"
-//            + " Path=/; HttpOnly; Max-Age=" + JwtProperties.EXPIRATION_TIME / 1000;
-
-        String cookieValue = tokenUtil.createCookieValue(jwtToken);
-
+        /** response Set-Cookie */
+        String jwtToken = jWTTokenUtil
+                .createJwtToken(principalDetails.getUser().getId(), principalDetails.getUser().getUsername(), principalDetails.getUser().getRole());
+        String cookieValue = jWTTokenUtil.createCookieValue(jwtToken);
         response.addHeader("Set-Cookie", cookieValue);
 
-//        super.successfulAuthentication(request, response, chain, authResult);
+//        super.successfulAuthentication(request, response, chain, authentication);
     }
 
     @Override
@@ -66,7 +49,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         try {
             ObjectMapper om = new ObjectMapper();
-            User user = om.readValue(request.getInputStream(), User.class);
+//            User user = om.readValue(request.getInputStream(), User.class);
+            UserDto user = om.readValue(request.getInputStream(), UserDto.class);
 
             UsernamePasswordAuthenticationToken authenticationToken
                     = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());

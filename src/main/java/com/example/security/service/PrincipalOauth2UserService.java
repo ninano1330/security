@@ -5,6 +5,7 @@ import com.example.security.config.oauth.FacebookUserInfo;
 import com.example.security.config.oauth.GoogleUserInfo;
 import com.example.security.config.oauth.NaverUserInfo;
 import com.example.security.config.oauth.OAuth2UserInfo;
+import com.example.security.dto.UserDto;
 import com.example.security.entity.User;
 import com.example.security.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +68,8 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             userRepository.save(user);
         }
 
-        return new PrincipalDetails(user, oAuth2User.getAttributes());
+        UserDto userDto = user.toDto();
+
+        return new PrincipalDetails(userDto, oAuth2User.getAttributes());
     }
 }

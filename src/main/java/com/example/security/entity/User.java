@@ -1,5 +1,6 @@
 package com.example.security.entity;
 
+import com.example.security.dto.UserDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.modelmapper.ModelMapper;
 
 import java.sql.Timestamp;
 
@@ -39,5 +41,12 @@ public class User {
         this.provider = provider;
         this.providerId = providerId;
         this.createDate = createDate;
+    }
+
+    public UserDto toDto() {
+        ModelMapper modelMapper = new ModelMapper();
+        UserDto userDto = modelMapper.map(this, UserDto.class);
+
+        return userDto;
     }
 }
