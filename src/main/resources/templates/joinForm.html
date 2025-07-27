@@ -3,14 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <title>회원가입 페이지</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        function join() {
+            let username = $('#username').val();
+            let password = $('#password').val();
+            let email = $('#email').val();
+
+            $.ajax({
+                type: 'POST',
+                url: '/join',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    username: username,
+                    password: password,
+                    email: email
+                }),
+                success: function(data) {
+                    alert('회원가입이 완료되었습니다.');
+                    location.href = '/loginForm'; // 회원가입 후 로그인 페이지로 이동
+                },
+                error: function(xhr, status, error) {
+                    alert(xhr.responseText);
+                }
+            });
+        }
+    </script>
 </head>
 <body>
 <h1>회원가입 페이지</h1>
-<form action="/join" method="post">
-    <input type="text" name="username" placeholder="Username"/> <br />
-    <input type="password" name="password" placeholder="Password"/> <br />
-    <input type="email" name="email" placeholder="Email"/> <br />
-    <button>회원가입</button>
-</form>
+<!--<form action="/join" method="post">-->
+    <input type="text" id="username" name="username" placeholder="Username"/> <br />
+    <input type="password" id="password" name="password" placeholder="Password"/> <br />
+    <input type="email" id="email" name="email" placeholder="Email"/> <br />
+    <button onclick="join()">회원가입</button>
+<!--</form>-->
 </body>
 </html>
