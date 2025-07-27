@@ -51,7 +51,7 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
         String username = provider + "_" + providerId; // google_1234
         String password = bCryptPasswordEncoder.encode("password");
         String email = oAuth2UserInfo.getEmail();
-        String role = "ROLE_USER";
+        String role = "ROLE_MANAGER";
 
         User user = userRepository.findByUsername(username);
 
